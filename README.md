@@ -1,22 +1,34 @@
-# Issuance-Encoder
-[![Build Status](https://travis-ci.org/Colored-Coins/Issuance-Encoder.svg?branch=master)](https://travis-ci.org/Colored-Coins/Issuance-Encoder) [![Coverage Status](https://coveralls.io/repos/Colored-Coins/Issuance-Encoder/badge.svg?branch=master)](https://coveralls.io/r/Colored-Coins/Issuance-Encoder?branch=master) [![npm version](https://badge.fury.io/js/cc-issuance-encoder.svg)](http://badge.fury.io/js/cc-issuance-encoder)
+# AssetID-Encoder
+[![Build Status](https://travis-ci.org/Colored-Coins/AssetId.svg?branch=master)](https://travis-ci.org/Colored-Coins/AssetId) [![Coverage Status](https://coveralls.io/repos/Colored-Coins/AssetId/badge.svg?branch=master)](https://coveralls.io/r/Colored-Coins/AssetId?branch=master) [![npm version](https://badge.fury.io/js/cc-assetid-encoder.svg)](http://badge.fury.io/js/cc-assetid-encoder)
 
 Issuance-Encoder provides the encode/decode functions between a Colored Coins issuance Object to buffer
 
 ### Installation
 
 ```sh
-$ npm install cc-issuance-encoder
+$ npm install cc-assetid-encoder
 ```
 
 
-### Encode
+### Encode Asset ID
 
 Params:
-
-
+    - BitcoinTransaction - An Object with contains at least the following properties:
 
 ```js
+{
+  'cc_metadata': [{
+    'type': 'issuance',
+    'lockStatus': false,
+  }],
+  'vin': [{
+    'txid': '0f45f38a8bcd8331877267e0f3f5f8a4b3c716165e40db4eee34d52759ad954f',
+    'vout': 2,
+    'scriptSig': {
+      'asm': '3045022100daf8f8d65ea908a28d90f700dc932ecb3b68f402b04ba92f987e8abd7080fcad02205ce81b698b8013b86813c9edafc9e79997610626c9dd1bfb49f60abee9daa43801 029b622e5f0f87f2be9f23c4d82f818a73e258a11c26f01f73c8b595042507a574',
+    }
+  }]
+}
 
 
 ```
@@ -26,32 +38,34 @@ Returns a new Buffer holding the encoded issuance.
 ##### Example:
 
 ```js
-var issuanceEncoder = require('cc-issuance-encoder')
+var assetIdEncoder = require('cc-assetid-encoder')
 
+var bitcoinTransaction = {
+  'cc_metadata': [{
+    'type': 'issuance',
+    'lockStatus': false,
+  }],
+  'vin': [{
+    'txid': '0f45f38a8bcd8331877267e0f3f5f8a4b3c716165e40db4eee34d52759ad954f',
+    'vout': 2,
+    'scriptSig': {
+      'asm': '3045022100daf8f8d65ea908a28d90f700dc932ecb3b68f402b04ba92f987e8abd7080fcad02205ce81b698b8013b86813c9edafc9e79997610626c9dd1bfb49f60abee9daa43801 029b622e5f0f87f2be9f23c4d82f818a73e258a11c26f01f73c8b595042507a574',
+    }
+  }]
+}
+
+assetIdEncoder(bitcoinTransaction)
+// Will print 'UfcXLuD8MtuCFyHjeFp8qRvFD9A5TYJbHb'
 
 ```
 
-### Decode
-
-Params:
-
-- consume - takes a consumable buffer (You can use [buffer-consumer] like in the example to create one)
-
-Returns a Colored Coins payment Object
-
-##### Example:
-
-```js
-var issuanceEncoder = require('cc-issuance-encoder')
-
-```
 
 ### Testing
 
 In order to test you need to install [mocha] globaly on your machine
 
 ```sh
-$ cd /"module-path"/cc-issuance-Encoder
+$ cd /"module-path"/cc-assetid-Encoder
 $ mocha
 ```
 
@@ -61,6 +75,4 @@ License
 
 MIT
 
-
 [mocha]:https://www.npmjs.com/package/mocha
-[buffer-consumer]:https://www.npmjs.com/package/buffer-consumer
