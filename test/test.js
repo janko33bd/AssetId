@@ -84,7 +84,7 @@ describe('Test Issuance decoder', function () {
     done()
   })
 
-  it('should return Unlocked asset ID from address', function (done) {
+  it('should return Unlocked asset ID from testnet address', function (done) {
     bitcoinTransaction = {
       cc_metadata:
         [{
@@ -122,6 +122,25 @@ describe('Test Issuance decoder', function () {
     }
     , 'Unrecognized address network'
     , 'Unrecognized address network')
+    done()
+  })
+
+  it('should return Unlocked asset ID from mainnet address', function (done) {
+    bitcoinTransaction = {
+      cc_metadata:
+        [{
+          type: 'issuance',
+          lockStatus: false
+        }],
+      vin:
+      [{ txid: '095d3352d3c54b435d833be5d78016e3daa49b137a20c2941ed80214b519ecbe',
+        vout: 2,
+        address: '1PuKhp9CmFL9Xs2apKKeTAtLoZPcvoikE1'
+      }]
+    }
+    assetId3 = assetId(bitcoinTransaction)
+    assert.equal(assetId3[0], 'U', 'Should be Unlocked')
+    // console.log(assetId3)
     done()
   })
 
