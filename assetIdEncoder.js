@@ -1,16 +1,26 @@
-var crypto = require('crypto')
 var cs = require('coinstring')
+var hash = require('crypto-hashing')
+var UNLOCKEPADDING = 0x44
+var LOCKEPADDING = 0x30
 
 var createId = function (publicKey, padding) {
   if (!Buffer.isBuffer(publicKey)) {
     publicKey = new Buffer(publicKey, 'hex')
   }
-  var hash256 = crypto.createHash('sha256').update(publicKey).digest('hex')
-  var hash160 = crypto.createHash('ripemd160').update(hash256).digest('hex')
+  var hash256 = hash.sha256(publicKey)
+  var hash160 = hash.ripemd160(hash256)
   var hash160Buf = new Buffer(hash160, 'hex')
   var assetId = cs.encode(hash160Buf, padding)
-
   return assetId
+}
+
+var createIdFromAddress = function (address, padding) {
+  if (!Buffer.isBuffer(address)) {
+    address = new Buffer(address, 'hex')
+  }
+  var version = address.slice(0, 1)
+  var checkSumedPayload = address.slice(1)
+  return cs.encode(cs.decode(checkSumedPayload, version), padding)
 }
 
 module.exports = function (bitcoinTransaction) {
@@ -19,8 +29,7 @@ module.exports = function (bitcoinTransaction) {
   if (typeof bitcoinTransaction.cc_metadata[0].lockStatus === 'undefined') throw new Error('Missing Lock Status data')
   var lockStatus = bitcoinTransaction.cc_metadata.lockStatus
   var firstInput = bitcoinTransaction.vin[0]
-  if (lockStatus) {
-    return createId(firstInput.txid + '-' + firstInput.vout, 0x30)
-  }
-  return createId(firstInput.scriptSig.asm.split(' ')[1], 0x44)
+  if (lockStatus) return createId(firstInput.txid + '-' + firstInput.vout, LOCKEPADDING)
+  if (firstInput.scriptSig && firstInput.scriptSig.asm) return createId(firstInput.scriptSig.asm.split(' ')[1], UNLOCKEPADDING)
+  if (firstInput.address) return createIdFromAddress(firstInput.address, UNLOCKEPADDING)
 }

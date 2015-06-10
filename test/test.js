@@ -1,5 +1,6 @@
 var assetId = require(__dirname + '/../assetIdEncoder')
 var assert = require('assert')
+var assetId1, assetId2, assetId3
 
 describe('Test Issuance decoder', function () {
   var bitcoinTransaction = {
@@ -68,15 +69,28 @@ describe('Test Issuance decoder', function () {
    'version': 1,
    'hex': '01000000014f95ad5927d534ee4edb405e1616c7b3a4f8f5f3e06772873183cd8b8af3450f020000006b483045022100daf8f8d65ea908a28d90f700dc932ecb3b68f402b04ba92f987e8abd7080fcad02205ce81b698b8013b86813c9edafc9e79997610626c9dd1bfb49f60abee9daa4380121029b622e5f0f87f2be9f23c4d82f818a73e258a11c26f01f73c8b595042507a574ffffffff0358020000000000001976a9145c7432e747af0d7e8f60de97d5ddd30ec1d9c72688ac00000000000000000a6a084343010501000100808c0d04000000001976a914b8df2b3d4ca896915875afeda7730be816559df688ac00000000'
   }
-  it('should return Unlocked asset ID', function (done) {
-    assert.equal(assetId(bitcoinTransaction)[0], 'U', 'Should be Unlocked')
+  it('should return Unlocked asset ID from scriptSig.asm', function (done) {
+    assetId1 = assetId(bitcoinTransaction)
+    assert.equal(assetId1[0], 'U', 'Should be Unlocked')
     // console.log(assetId(bitcoinTransaction))
     done()
   })
 
   it('should return Locked asset ID', function (done) {
     bitcoinTransaction.cc_metadata.lockStatus = true
-    assert.equal(assetId(bitcoinTransaction)[0], 'L', 'Should be Locked')
+    assetId2 = assetId(bitcoinTransaction)
+    assert.equal(assetId2[0], 'L', 'Should be Locked')
+    // console.log(assetId(bitcoinTransaction))
+    done()
+  })
+
+  it('should return Unlocked asset ID from address', function (done) {
+    delete bitcoinTransaction.vin[0].addresses
+    bitcoinTransaction.vin[0].address = 'mxNTyQ3WdFMQE7SGVpSQGXnSDevGMLq7dg'
+    bitcoinTransaction.cc_metadata.lockStatus = false
+    assetId3 = assetId(bitcoinTransaction)
+    assert.equal(assetId3[0], 'U', 'Should be Unlocked')
+    assert.equal(assetId3, assetId1, 'Should get the same assetId from public key or asset')
     // console.log(assetId(bitcoinTransaction))
     done()
   })

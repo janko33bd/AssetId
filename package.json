@@ -1,6 +1,6 @@
 {
   "name": "cc-assetid-encoder",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Creates an Asset Id for Issuance transaction",
   "main": "assetIdEncoder.js",
   "directories": {
@@ -23,6 +23,7 @@
     "url": "https://github.com/Colored-Coins/AssetId.git"
   },
   "dependencies": {
-    "coinstring": "2.3.0"
+    "coinstring": "2.3.0",
+    "crypto-hashing": "0.3.1"
   }
 }
