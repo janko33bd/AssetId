@@ -85,13 +85,43 @@ describe('Test Issuance decoder', function () {
   })
 
   it('should return Unlocked asset ID from address', function (done) {
-    delete bitcoinTransaction.vin[0].addresses
-    bitcoinTransaction.vin[0].address = 'mxNTyQ3WdFMQE7SGVpSQGXnSDevGMLq7dg'
-    bitcoinTransaction.cc_metadata.lockStatus = false
+    bitcoinTransaction = {
+      cc_metadata:
+        [{
+          type: 'issuance',
+          lockStatus: false
+        }],
+      vin:
+      [{ txid: '095d3352d3c54b435d833be5d78016e3daa49b137a20c2941ed80214b519ecbe',
+        vout: 2,
+        address: 'mxNTyQ3WdFMQE7SGVpSQGXnSDevGMLq7dg'
+      }]
+    }
     assetId3 = assetId(bitcoinTransaction)
     assert.equal(assetId3[0], 'U', 'Should be Unlocked')
     assert.equal(assetId3, assetId1, 'Should get the same assetId from public key or asset')
     // console.log(assetId(bitcoinTransaction))
+    done()
+  })
+
+  it('should return Unrecognized address network Error', function (done) {
+    bitcoinTransaction = {
+      cc_metadata:
+        [{
+          type: 'issuance',
+          lockStatus: false
+        }],
+      vin:
+      [{ txid: '095d3352d3c54b435d833be5d78016e3daa49b137a20c2941ed80214b519ecbe',
+        vout: 2,
+        address: 'fxNTyQ3WdFMQE7SGVpSQGXnSDevGMLq7dg'
+      }]
+    }
+    assert.throws(function () {
+      assetId(bitcoinTransaction)
+    }
+    , 'Unrecognized address network'
+    , 'Unrecognized address network')
     done()
   })
 
