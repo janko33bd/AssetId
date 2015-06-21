@@ -2,8 +2,7 @@ var cs = require('coinstring')
 var hash = require('crypto-hashing')
 var UNLOCKEPADDING = 0x44
 var LOCKEPADDING = 0x30
-var TESTNET = 0x6f
-var MAINNET = 0x00
+var NETWORKVERSIONS = [0x00, 0x05, 0x6f, 0xc4]
 
 var createId = function (publicKey, padding) {
   if (!Buffer.isBuffer(publicKey)) {
@@ -17,19 +16,12 @@ var createId = function (publicKey, padding) {
 }
 
 var createIdFromAddress = function (address, padding) {
-  var firstChar = address.slice(0, 1)
-  var version
-  switch (firstChar) {
-    case '1':
-        version = MAINNET
-        break
-    case 'm':
-        version = TESTNET
-        break
-    default:
-        throw new Error('Unrecognized address network')
-  }
-  return cs.encode(cs.decode(address, version), padding)
+  address = cs.decode(address)
+  var version = address.slice(0, 1)
+  if (version[0] === 4) version = address.slice(0, 4)
+  address = address.slice(version.length, 21)
+  if (NETWORKVERSIONS.indexOf(parseInt(version.toString('hex'), 16)) === -1) throw new Error('Unrecognized address network')
+  return cs.encode(address, padding)
 }
 
 module.exports = function (bitcoinTransaction) {

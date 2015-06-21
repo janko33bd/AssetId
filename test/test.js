@@ -144,4 +144,42 @@ describe('Test Issuance decoder', function () {
     done()
   })
 
+  it('should return Unlocked asset ID from mainnet script address', function (done) {
+    bitcoinTransaction = {
+      cc_metadata:
+        [{
+          type: 'issuance',
+          lockStatus: false
+        }],
+      vin:
+      [{ txid: '095d3352d3c54b435d833be5d78016e3daa49b137a20c2941ed80214b519ecbe',
+        vout: 2,
+        address: '3EktnHQD7RiAE6uzMj2ZifT9YgRrkSgzQX'
+      }]
+    }
+    assetId3 = assetId(bitcoinTransaction)
+    assert.equal(assetId3[0], 'U', 'Should be Unlocked')
+    // console.log(assetId3)
+    done()
+  })
+
+  it('should return Unlocked asset ID from testnet script address', function (done) {
+    bitcoinTransaction = {
+      cc_metadata:
+        [{
+          type: 'issuance',
+          lockStatus: false
+        }],
+      vin:
+      [{ txid: '095d3352d3c54b435d833be5d78016e3daa49b137a20c2941ed80214b519ecbe',
+        vout: 2,
+        address: '2MzQwSSnBHWHqSAqtTVQ6v47XtaisrJa1Vc'
+      }]
+    }
+    assetId3 = assetId(bitcoinTransaction)
+    assert.equal(assetId3[0], 'U', 'Should be Unlocked')
+    // console.log(assetId3)
+    done()
+  })
+
 })
