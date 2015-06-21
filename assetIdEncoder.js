@@ -18,7 +18,7 @@ var createId = function (publicKey, padding) {
 var createIdFromAddress = function (address, padding) {
   address = cs.decode(address)
   var version = address.slice(0, 1)
-  if (version[0] === 4) version = address.slice(0, 4)
+  // if (version[0] === 4) version = address.slice(0, 4)
   address = address.slice(version.length, 21)
   if (NETWORKVERSIONS.indexOf(parseInt(version.toString('hex'), 16)) === -1) throw new Error('Unrecognized address network')
   return cs.encode(address, padding)
