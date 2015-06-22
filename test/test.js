@@ -5,7 +5,7 @@ var assetId1, assetId2, assetId3
 describe('Test Issuance decoder', function () {
   var bitcoinTransaction = {
    'txid': 'bc1083ff98873050d2fa9d38823057f0125161ecad43ab2e2dcd1dd3c2668fb7',
-   'cc_metadata': [{
+   'cc_data': [{
        'protocol': 17219,
        'version': 1,
        'type': 'issuance',
@@ -77,7 +77,7 @@ describe('Test Issuance decoder', function () {
   })
 
   it('should return Locked asset ID', function (done) {
-    bitcoinTransaction.cc_metadata.lockStatus = true
+    bitcoinTransaction.cc_data.lockStatus = true
     assetId2 = assetId(bitcoinTransaction)
     assert.equal(assetId2[0], 'L', 'Should be Locked')
     // console.log(assetId(bitcoinTransaction))
@@ -86,7 +86,7 @@ describe('Test Issuance decoder', function () {
 
   it('should return Unlocked asset ID from testnet address', function (done) {
     bitcoinTransaction = {
-      cc_metadata:
+      cc_data:
         [{
           type: 'issuance',
           lockStatus: false
@@ -106,7 +106,7 @@ describe('Test Issuance decoder', function () {
 
   it('should return Unrecognized address network Error', function (done) {
     bitcoinTransaction = {
-      cc_metadata:
+      cc_data:
         [{
           type: 'issuance',
           lockStatus: false
@@ -127,7 +127,7 @@ describe('Test Issuance decoder', function () {
 
   it('should return Unlocked asset ID from mainnet address', function (done) {
     bitcoinTransaction = {
-      cc_metadata:
+      cc_data:
         [{
           type: 'issuance',
           lockStatus: false
@@ -146,7 +146,7 @@ describe('Test Issuance decoder', function () {
 
   it('should return Unlocked asset ID from mainnet script address', function (done) {
     bitcoinTransaction = {
-      cc_metadata:
+      cc_data:
         [{
           type: 'issuance',
           lockStatus: false
@@ -165,7 +165,7 @@ describe('Test Issuance decoder', function () {
 
   it('should return Unlocked asset ID from testnet script address', function (done) {
     bitcoinTransaction = {
-      cc_metadata:
+      cc_data:
         [{
           type: 'issuance',
           lockStatus: false

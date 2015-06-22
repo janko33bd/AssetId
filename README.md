@@ -17,7 +17,7 @@ Params:
 
 ```js
 {
-  'cc_metadata': [{
+  'cc_data': [{
     'type': 'issuance',
     'lockStatus': false,
   }],
@@ -45,7 +45,7 @@ Returns a new Buffer holding the encoded issuance.
 var assetIdEncoder = require('cc-assetid-encoder')
 
 var bitcoinTransaction = {
-  'cc_metadata': [{
+  'cc_data': [{
     'type': 'issuance',
     'lockStatus': false,
   }],

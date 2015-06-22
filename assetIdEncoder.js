@@ -25,10 +25,10 @@ var createIdFromAddress = function (address, padding) {
 }
 
 module.exports = function (bitcoinTransaction) {
-  if (!bitcoinTransaction.cc_metadata) throw new Error('Missing Colored Coin Metadata')
-  if (bitcoinTransaction.cc_metadata[0].type !== 'issuance') throw new Error('Not An issuance transaction')
-  if (typeof bitcoinTransaction.cc_metadata[0].lockStatus === 'undefined') throw new Error('Missing Lock Status data')
-  var lockStatus = bitcoinTransaction.cc_metadata.lockStatus
+  if (!bitcoinTransaction.cc_data) throw new Error('Missing Colored Coin Metadata')
+  if (bitcoinTransaction.cc_data[0].type !== 'issuance') throw new Error('Not An issuance transaction')
+  if (typeof bitcoinTransaction.cc_data[0].lockStatus === 'undefined') throw new Error('Missing Lock Status data')
+  var lockStatus = bitcoinTransaction.cc_data.lockStatus
   var firstInput = bitcoinTransaction.vin[0]
   if (lockStatus) return createId(firstInput.txid + '-' + firstInput.vout, LOCKEPADDING)
   if (firstInput.scriptSig && firstInput.scriptSig.asm) return createId(firstInput.scriptSig.asm.split(' ')[1], UNLOCKEPADDING)
