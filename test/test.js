@@ -77,7 +77,7 @@ describe('Test Issuance decoder', function () {
   })
 
   it('should return Locked asset ID', function (done) {
-    bitcoinTransaction.cc_data.lockStatus = true
+    bitcoinTransaction.cc_data[0].lockStatus = true
     assetId2 = assetId(bitcoinTransaction)
     assert.equal(assetId2[0], 'L', 'Should be Locked')
     // console.log(assetId(bitcoinTransaction))
@@ -159,6 +159,23 @@ describe('Test Issuance decoder', function () {
     }
     assetId3 = assetId(bitcoinTransaction)
     assert.equal(assetId3[0], 'U', 'Should be Unlocked')
+    // console.log(assetId3)
+    done()
+  })
+
+  it('should return Locked asset ID', function (done) {
+    bitcoinTransaction = {
+       'cc_data': [{
+         'type': 'issuance',
+         'lockStatus': true
+       }],
+       'vin': [{
+         'txid': '0f45f38a8bcd8331877267e0f3f5f8a4b3c716165e40db4eee34d52759ad954f',
+         'vout': 2
+       }]
+     }
+    assetId3 = assetId(bitcoinTransaction)
+    assert.equal(assetId3[0], 'L', 'Should be Locked')
     // console.log(assetId3)
     done()
   })
