@@ -10,7 +10,7 @@ describe('Test Issuance decoder', function () {
        'version': 1,
        'type': 'issuance',
        'lockStatus': false,
-       'divisibility': 0,
+       'divisibility': 3,
        'amount': 1,
        'payments': [{
            'input': 0,
@@ -89,7 +89,8 @@ describe('Test Issuance decoder', function () {
       cc_data:
         [{
           type: 'issuance',
-          lockStatus: false
+          lockStatus: false,
+          divisibility: 3
         }],
       vin:
       [{ txid: '095d3352d3c54b435d833be5d78016e3daa49b137a20c2941ed80214b519ecbe',
