@@ -17,7 +17,7 @@ describe('Test Issuance decoder', function () {
            'amountOfUnits': 1,
            'output': 0,
            'range': false,
-           'precent': false
+           'percent': false
          }]
      }],
    'iosparsed': false,
