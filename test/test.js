@@ -14,7 +14,7 @@ describe('Test Issuance decoder', function () {
        'amount': 1,
        'payments': [{
            'input': 0,
-           'amountOfUnits': 1,
+           'amount': 1,
            'output': 0,
            'range': false,
            'percent': false
