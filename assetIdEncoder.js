@@ -30,12 +30,12 @@ var createId = function (publicKey, padding, divisibility) {
 }
 
 module.exports = function (bitcoinTransaction) {
-  if (!bitcoinTransaction.cc_data) throw new Error('Missing Colored Coin Metadata')
-  if (bitcoinTransaction.cc_data[0].type !== 'issuance') throw new Error('Not An issuance transaction')
-  if (typeof bitcoinTransaction.cc_data[0].lockStatus === 'undefined') throw new Error('Missing Lock Status data')
-  var lockStatus = bitcoinTransaction.cc_data[0].lockStatus
-  var aggregationPolicy = bitcoinTransaction.cc_data[0].aggregationPolicy
-  var divisibility = bitcoinTransaction.cc_data[0].divisibility
+  if (!bitcoinTransaction.ccdata) throw new Error('Missing Colored Coin Metadata')
+  if (bitcoinTransaction.ccdata[0].type !== 'issuance') throw new Error('Not An issuance transaction')
+  if (typeof bitcoinTransaction.ccdata[0].lockStatus === 'undefined') throw new Error('Missing Lock Status data')
+  var lockStatus = bitcoinTransaction.ccdata[0].lockStatus
+  var aggregationPolicy = bitcoinTransaction.ccdata[0].aggregationPolicy
+  var divisibility = bitcoinTransaction.ccdata[0].divisibility
   var firstInput = bitcoinTransaction.vin[0]
   if (lockStatus) return createId(firstInput.txid + '-' + firstInput.vout, LOCKEPADDING[aggregationPolicy], divisibility)
   if (firstInput.scriptSig && firstInput.scriptSig.asm) return createId(firstInput.scriptSig.asm.split(' ')[1], UNLOCKEPADDING[aggregationPolicy], divisibility)
