@@ -23,7 +23,7 @@
     "url": "https://github.com/Colored-Coins/AssetId.git"
   },
   "dependencies": {
-    "coinstring": "2.3.0",
+    "bs58check": "^1.0.8",
     "crypto-hashing": "0.3.1"
   }
 }
