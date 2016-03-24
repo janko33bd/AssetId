@@ -20,7 +20,6 @@ var padLeadingZeros = function (hex, byteSize) {
 }
 
 var createId = function (publicKey, padding, divisibility) {
-  divisibility = divisibility || 0
   divisibility = new Buffer(padLeadingZeros(divisibility.toString(16), POSTFIXBYTELENGTH), 'hex')
   padding = new Buffer(padLeadingZeros(padding.toString(16)), 'hex')
   var hash256 = hash.sha256(publicKey)
@@ -34,8 +33,8 @@ module.exports = function (bitcoinTransaction) {
   if (bitcoinTransaction.ccdata[0].type !== 'issuance') throw new Error('Not An issuance transaction')
   if (typeof bitcoinTransaction.ccdata[0].lockStatus === 'undefined') throw new Error('Missing Lock Status data')
   var lockStatus = bitcoinTransaction.ccdata[0].lockStatus
-  var aggregationPolicy = bitcoinTransaction.ccdata[0].aggregationPolicy
-  var divisibility = bitcoinTransaction.ccdata[0].divisibility
+  var aggregationPolicy = bitcoinTransaction.ccdata[0].aggregationPolicy || 'aggregatable'
+  var divisibility = bitcoinTransaction.ccdata[0].divisibility || 0
   var firstInput = bitcoinTransaction.vin[0]
   if (lockStatus) return createId(firstInput.txid + '-' + firstInput.vout, LOCKEPADDING[aggregationPolicy], divisibility)
   if (firstInput.scriptSig && firstInput.scriptSig.asm) return createId(firstInput.scriptSig.asm.split(' ')[1], UNLOCKEPADDING[aggregationPolicy], divisibility)
