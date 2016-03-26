@@ -98,6 +98,7 @@ var hashAndBase58CheckEncode = function (payloadToHash, padding, divisibility) {
 }
 
 module.exports = function (bitcoinTransaction) {
+  debug('bitcoinTransaction.txid = ', bitcoinTransaction.txid)
   if (!bitcoinTransaction.ccdata) throw new Error('Missing Colored Coin Metadata')
   if (bitcoinTransaction.ccdata[0].type !== 'issuance') throw new Error('Not An issuance transaction')
   if (typeof bitcoinTransaction.ccdata[0].lockStatus === 'undefined') throw new Error('Missing Lock Status data')
