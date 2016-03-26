@@ -221,7 +221,7 @@ describe('Test Issuance decoder', function () {
     it('should return correct unlocked hybrid asset ID', function (done) {
       bitcoinTransaction.ccdata[0].aggregationPolicy = 'hybrid'
       assetId = assetIdEncoder(bitcoinTransaction)
-      assert.equal(assetId, 'Ua9CgfGFKCVRdV4aUj4hYz2XtxCg4Smpu8TVAQ')
+      assert.equal(assetId, 'UhAq321h7FTWSJPKDANpPZtAWSspAd28P59scH')
       console.log(assetId)
       done()
     })
@@ -229,7 +229,7 @@ describe('Test Issuance decoder', function () {
     it('should return correct unlocked dispersed asset ID', function (done) {
       bitcoinTransaction.ccdata[0].aggregationPolicy = 'dispersed'
       assetId = assetIdEncoder(bitcoinTransaction)
-      assert.equal(assetId, 'Ua9CgfGFKCVRdV4aUj4hYz2XtxCg4Smpu8TVAQ')
+      assert.equal(assetId, 'UdFVstuJv4szzC54JViq3AYHyVr4cBEEEdCFyB')
       console.log(assetId)
       done()
     })
