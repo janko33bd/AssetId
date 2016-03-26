@@ -12,7 +12,6 @@ var LOCKEPADDING = {
   hybrid: 0x2102,
   dispersed: 0x20e4
 }
-var NETWORKVERSIONS = [0x00, 0x05, 0x6f, 0xc4]
 var POSTFIXBYTELENGTH = 2
 
 var padLeadingZeros = function (hex, byteSize) {
@@ -29,10 +28,10 @@ var createId = function (firstInput, padding, divisibility) {
   }
 
   var scriptSig = firstInput.scriptSig
-  console.log('scriptSig.asm = ', scriptSig.asm)
-  var asmBuffer = bitcoin.script.fromASM(scriptSig.asm)
-  console.log('asmBuffer = ', asmBuffer)
-  var type = bitcoin.script.classifyInput(asmBuffer)
+  console.log('scriptSig.hex = ', scriptSig.hex)
+  var buffer = new Buffer(scriptSig.hex, 'hex')
+  console.log('buffer = ', buffer)
+  var type = bitcoin.script.classifyInput(buffer)
   if (type === 'pubkeyhash') {
     return createIdFromPubKeyHashInput(scriptSig, padding, divisibility)
   }
@@ -45,17 +44,17 @@ var createId = function (firstInput, padding, divisibility) {
 
 var createIdFromPreviousOutputScriptPubKey = function (previousOutput, padding, divisibility) {
   debug('createIdFromPreviousOutputScriptPubKey')
-  if (!previousOutput || !previousOutput.asm) return
-  var asmBuffer = bitcoin.script.fromASM(previousOutput.asm)
-  debug('asmBuffer = ', asmBuffer)
-  return hashAndBase58CheckEncode(asmBuffer, padding, divisibility)
+  if (!previousOutput || !previousOutput.hex) return
+  var buffer = new Buffer(previousOutput.hex, 'hex')
+  debug('buffer = ', buffer)
+  return hashAndBase58CheckEncode(buffer, padding, divisibility)
 }
 
 var createIdFromScriptHashInput = function (scriptSig, padding, divisibility) {
   debug('createIdFromScriptHashInput')
-  var asmBuffer = bitcoin.script.fromASM(scriptSig.asm)
-  debug('asmBuffer = ', asmBuffer)
-  var chunks = bitcoin.script.decompile(asmBuffer)
+  var buffer = new Buffer(scriptSig.hex, 'hex')
+  debug('buffer = ', buffer)
+  var chunks = bitcoin.script.decompile(buffer)
   var lastChunk = chunks[chunks.length - 1]
   debug('lastChunk = ', lastChunk)
   var redeemScriptChunks = bitcoin.script.decompile(lastChunk)

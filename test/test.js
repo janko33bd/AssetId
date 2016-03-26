@@ -205,7 +205,7 @@ describe('Test Issuance decoder', function () {
         txid: '0f45f38a8bcd8331877267e0f3f5f8a4b3c716165e40db4eee34d52759ad954f',
         vout: 2,
         previousOutput: {
-          asm: 'OP_DUP OP_HASH160 ee54bdd81113a2a8f02cd0dcdd1fa8b14c523fd9 OP_EQUALVERIFY OP_CHECKSIG'
+          hex: '76a914ee54bdd81113a2a8f02cd0dcdd1fa8b14c523fd988ac'
         }
       }]
     }
