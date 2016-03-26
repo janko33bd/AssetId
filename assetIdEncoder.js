@@ -1,5 +1,7 @@
+var bitcoin = require('bitcoinjs-lib')
 var bs58check = require('bs58check')
 var hash = require('crypto-hashing')
+var debug = require('debug')('assetIdEncoder')
 var UNLOCKEPADDING = {
   aggregatable: 0x2e37,
   hybrid: 0x2e6b,
@@ -10,6 +12,7 @@ var LOCKEPADDING = {
   hybrid: 0x2102,
   dispersed: 0x20e4
 }
+var NETWORKVERSIONS = [0x00, 0x05, 0x6f, 0xc4]
 var POSTFIXBYTELENGTH = 2
 
 var padLeadingZeros = function (hex, byteSize) {
@@ -19,11 +22,77 @@ var padLeadingZeros = function (hex, byteSize) {
   return (hex.length === byteSize * 2) ? hex : padLeadingZeros('0' + hex, byteSize)
 }
 
-var createId = function (publicKey, padding, divisibility) {
-  divisibility = new Buffer(padLeadingZeros(divisibility.toString(16), POSTFIXBYTELENGTH), 'hex')
-  padding = new Buffer(padLeadingZeros(padding.toString(16)), 'hex')
+var createId = function (firstInput, padding, divisibility) {
+  debug('createId')
+  if (!firstInput.scriptSig) {
+    return createIdFromPreviousOutputScriptPubKey(firstInput.previousOutput, padding, divisibility)
+  }
+
+  var scriptSig = firstInput.scriptSig
+  debug('scriptSig.asm = ', scriptSig.asm)
+  var asmBuffer = bitcoin.script.fromASM(scriptSig.asm)
+  debug('asmBuffer = ', asmBuffer)
+  var type = bitcoin.script.classifyInput(asmBuffer)
+  if (type === 'pubkeyhash') {
+    return createIdFromPubKeyHashInput(scriptSig, padding, divisibility)
+  }
+  if (type === 'scripthash') {
+    return createIdFromScriptHashInput(scriptSig, padding, divisibility)
+  }
+  // pubkey, multisig, or nonstandard
+  return createIdFromPreviousOutputScriptPubKey(firstInput.previousOutput, padding, divisibility)
+}
+
+var createIdFromPreviousOutputScriptPubKey = function (previousOutput, padding, divisibility) {
+  debug('createIdFromPreviousOutputScriptPubKey')
+  if (!previousOutput || !previousOutput.asm) return
+  var asmBuffer = bitcoin.script.fromASM(previousOutput.asm)
+  debug('asmBuffer = ', asmBuffer)
+  return hashAndBase58CheckEncode(asmBuffer, padding, divisibility)
+}
+
+var createIdFromScriptHashInput = function (scriptSig, padding, divisibility) {
+  debug('createIdFromScriptHashInput')
+  var asmBuffer = bitcoin.script.fromASM(scriptSig.asm)
+  debug('asmBuffer = ', asmBuffer)
+  var chunks = bitcoin.script.decompile(asmBuffer)
+  var lastChunk = chunks[chunks.length - 1]
+  debug('lastChunk = ', lastChunk)
+  var redeemScriptChunks = bitcoin.script.decompile(lastChunk)
+  redeemScriptChunks = redeemScriptChunks.map(function (chunk) { return Buffer.isBuffer(chunk) ? chunk : new Buffer(chunk.toString(16), 'hex') })
+  var redeemScript = Buffer.concat(redeemScriptChunks)
+  debug('redeemScript = ', redeemScript)
+  var hash256 = hash.sha256(redeemScript)
+  var scriptHash = hash.ripemd160(hash256)
+  var scriptHashOutput = bitcoin.script.scriptHashOutput(scriptHash)
+  return hashAndBase58CheckEncode(scriptHashOutput, padding, divisibility)
+}
+
+var createIdFromTxidIndex = function (txid, index, padding, divisibility) {
+  debug('createIdFromTxidIndex')
+  debug('txid = ', txid, ', index = ', index)
+  var str = txid + ':' + index
+  return hashAndBase58CheckEncode(str, padding, divisibility)
+}
+
+var createIdFromPubKeyHashInput = function (scriptSig, padding, divisibility) {
+  debug('createIdFromPubKeyHashInput')
+  var publicKey = scriptSig.asm.split(' ')[1]
+  debug('publicKey = ', publicKey)
+  publicKey = new Buffer(publicKey, 'hex')
+  debug('publicKey = ', publicKey)
   var hash256 = hash.sha256(publicKey)
+  var pubKeyHash = hash.ripemd160(hash256)
+  var pubKeyHashOutput = bitcoin.script.pubKeyHashOutput(pubKeyHash)
+  debug('pubKeyHashOutput = ', pubKeyHashOutput)
+  return hashAndBase58CheckEncode(pubKeyHashOutput, padding, divisibility)
+}
+
+var hashAndBase58CheckEncode = function (payloadToHash, padding, divisibility) {
+  var hash256 = hash.sha256(payloadToHash)
   var hash160 = hash.ripemd160(hash256)
+  padding = new Buffer(padLeadingZeros(padding.toString(16)), 'hex')
+  divisibility = new Buffer(padLeadingZeros(divisibility.toString(16), POSTFIXBYTELENGTH), 'hex')
   var concatenation = Buffer.concat([padding, hash160, divisibility])
   return bs58check.encode(concatenation)
 }
@@ -36,6 +105,6 @@ module.exports = function (bitcoinTransaction) {
   var aggregationPolicy = bitcoinTransaction.ccdata[0].aggregationPolicy || 'aggregatable'
   var divisibility = bitcoinTransaction.ccdata[0].divisibility || 0
   var firstInput = bitcoinTransaction.vin[0]
-  if (lockStatus) return createId(firstInput.txid + '-' + firstInput.vout, LOCKEPADDING[aggregationPolicy], divisibility)
-  if (firstInput.scriptSig && firstInput.scriptSig.asm) return createId(firstInput.scriptSig.asm.split(' ')[1], UNLOCKEPADDING[aggregationPolicy], divisibility)
+  if (lockStatus) return createIdFromTxidIndex(firstInput.txid, firstInput.vout, LOCKEPADDING[aggregationPolicy], divisibility)
+  return createId(firstInput, UNLOCKEPADDING[aggregationPolicy], divisibility)
 }
