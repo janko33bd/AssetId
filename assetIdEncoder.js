@@ -29,9 +29,9 @@ var createId = function (firstInput, padding, divisibility) {
   }
 
   var scriptSig = firstInput.scriptSig
-  debug('scriptSig.asm = ', scriptSig.asm)
+  console.log('scriptSig.asm = ', scriptSig.asm)
   var asmBuffer = bitcoin.script.fromASM(scriptSig.asm)
-  debug('asmBuffer = ', asmBuffer)
+  console.log('asmBuffer = ', asmBuffer)
   var type = bitcoin.script.classifyInput(asmBuffer)
   if (type === 'pubkeyhash') {
     return createIdFromPubKeyHashInput(scriptSig, padding, divisibility)
