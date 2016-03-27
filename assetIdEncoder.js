@@ -12,6 +12,7 @@ var LOCKEPADDING = {
   hybrid: 0x2102,
   dispersed: 0x20e4
 }
+var NETWORKVERSIONS = [0x00, 0x05, 0x6f, 0xc4]
 var POSTFIXBYTELENGTH = 2
 
 var padLeadingZeros = function (hex, byteSize) {
@@ -21,33 +22,30 @@ var padLeadingZeros = function (hex, byteSize) {
   return (hex.length === byteSize * 2) ? hex : padLeadingZeros('0' + hex, byteSize)
 }
 
-var createId = function (firstInput, padding, divisibility) {
-  debug('createId')
-  if (!firstInput.scriptSig) {
-    return createIdFromPreviousOutputScriptPubKey(firstInput.previousOutput, padding, divisibility)
-  }
-
-  var scriptSig = firstInput.scriptSig
-  console.log('scriptSig.hex = ', scriptSig.hex)
-  var buffer = new Buffer(scriptSig.hex, 'hex')
-  console.log('buffer = ', buffer)
-  var type = bitcoin.script.classifyInput(buffer)
-  if (type === 'pubkeyhash') {
-    return createIdFromPubKeyHashInput(scriptSig, padding, divisibility)
-  }
-  if (type === 'scripthash') {
-    return createIdFromScriptHashInput(scriptSig, padding, divisibility)
-  }
-  // pubkey, multisig, or nonstandard
-  return createIdFromPreviousOutputScriptPubKey(firstInput.previousOutput, padding, divisibility)
+var createIdFromTxidIndex = function (txid, index, padding, divisibility) {
+  debug('createIdFromTxidIndex')
+  debug('txid = ', txid, ', index = ', index)
+  var str = txid + ':' + index
+  return hashAndBase58CheckEncode(str, padding, divisibility)
 }
 
-var createIdFromPreviousOutputScriptPubKey = function (previousOutput, padding, divisibility) {
-  debug('createIdFromPreviousOutputScriptPubKey')
-  if (!previousOutput || !previousOutput.hex) return
-  var buffer = new Buffer(previousOutput.hex, 'hex')
+var createIdFromPreviousOutputScriptPubKey = function (previousOutputHex, padding, divisibility) {
+  var buffer = new Buffer(previousOutputHex, 'hex')
   debug('buffer = ', buffer)
   return hashAndBase58CheckEncode(buffer, padding, divisibility)
+}
+
+var createIdFromPubKeyHashInput = function (scriptSig, padding, divisibility) {
+  debug('createIdFromPubKeyHashInput')
+  var publicKey = scriptSig.asm.split(' ')[1]
+  debug('publicKey = ', publicKey)
+  publicKey = new Buffer(publicKey, 'hex')
+  debug('publicKey = ', publicKey)
+  var hash256 = hash.sha256(publicKey)
+  var pubKeyHash = hash.ripemd160(hash256)
+  var pubKeyHashOutput = bitcoin.script.pubKeyHashOutput(pubKeyHash)
+  debug('pubKeyHashOutput = ', pubKeyHashOutput)
+  return hashAndBase58CheckEncode(pubKeyHashOutput, padding, divisibility)
 }
 
 var createIdFromScriptHashInput = function (scriptSig, padding, divisibility) {
@@ -67,21 +65,12 @@ var createIdFromScriptHashInput = function (scriptSig, padding, divisibility) {
   return hashAndBase58CheckEncode(scriptHashOutput, padding, divisibility)
 }
 
-var createIdFromTxidIndex = function (txid, index, padding, divisibility) {
-  debug('createIdFromTxidIndex')
-  debug('txid = ', txid, ', index = ', index)
-  var str = txid + ':' + index
-  return hashAndBase58CheckEncode(str, padding, divisibility)
-}
-
-var createIdFromPubKeyHashInput = function (scriptSig, padding, divisibility) {
-  debug('createIdFromPubKeyHashInput')
-  var publicKey = scriptSig.asm.split(' ')[1]
-  debug('publicKey = ', publicKey)
-  publicKey = new Buffer(publicKey, 'hex')
-  debug('publicKey = ', publicKey)
-  var hash256 = hash.sha256(publicKey)
-  var pubKeyHash = hash.ripemd160(hash256)
+var createIdFromAddress = function (address, padding, divisibility) {
+  debug('createIdFromAddress')
+  var addressBuffer = bs58check.decode(address)
+  var version = addressBuffer.slice(0, 1)
+  if (NETWORKVERSIONS.indexOf(parseInt(version.toString('hex'), 16)) === -1) throw new Error('Unrecognized address network')
+  var pubKeyHash = addressBuffer.slice(version.length, 21)
   var pubKeyHashOutput = bitcoin.script.pubKeyHashOutput(pubKeyHash)
   debug('pubKeyHashOutput = ', pubKeyHashOutput)
   return hashAndBase58CheckEncode(pubKeyHashOutput, padding, divisibility)
@@ -105,6 +94,32 @@ module.exports = function (bitcoinTransaction) {
   var aggregationPolicy = bitcoinTransaction.ccdata[0].aggregationPolicy || 'aggregatable'
   var divisibility = bitcoinTransaction.ccdata[0].divisibility || 0
   var firstInput = bitcoinTransaction.vin[0]
-  if (lockStatus) return createIdFromTxidIndex(firstInput.txid, firstInput.vout, LOCKEPADDING[aggregationPolicy], divisibility)
-  return createId(firstInput, UNLOCKEPADDING[aggregationPolicy], divisibility)
+  var padding
+  if (lockStatus) {
+    padding = LOCKEPADDING[aggregationPolicy]
+    return createIdFromTxidIndex(firstInput.txid, firstInput.vout, padding, divisibility)
+  }
+
+  padding = UNLOCKEPADDING[aggregationPolicy]
+  if (firstInput.previousOutput && firstInput.previousOutput.hex) {
+    return createIdFromPreviousOutputScriptPubKey(firstInput.previousOutput.hex, padding, divisibility)
+  }
+
+  if (firstInput.scriptSig && firstInput.scriptSig.hex) {
+    var scriptSig = firstInput.scriptSig
+    console.log('scriptSig.hex = ', scriptSig.hex)
+    var buffer = new Buffer(scriptSig.hex, 'hex')
+    console.log('buffer = ', buffer)
+    var type = bitcoin.script.classifyInput(buffer)
+    if (type === 'pubkeyhash') {
+      return createIdFromPubKeyHashInput(scriptSig, padding, divisibility)
+    }
+    if (type === 'scripthash') {
+      return createIdFromScriptHashInput(scriptSig, padding, divisibility)
+    }
+  }
+
+  if (firstInput.address) {
+    return createIdFromAddress(firstInput.address, padding, divisibility)
+  }
 }

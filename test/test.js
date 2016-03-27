@@ -193,7 +193,7 @@ describe('Test Issuance decoder', function () {
     })
   })
 
-  describe('create assetID from previous output', function () {
+  describe('1st input multisig, create asset ID from previousOutput.hex', function () {
     var bitcoinTransaction = {
       ccdata: [{
         type: 'issuance',
@@ -204,6 +204,10 @@ describe('Test Issuance decoder', function () {
       vin: [{
         txid: '0f45f38a8bcd8331877267e0f3f5f8a4b3c716165e40db4eee34d52759ad954f',
         vout: 2,
+        scriptSig: {
+          asm: 'OP_0 304402207515cf147d201f411092e6be5a64a6006f9308fad7b2a8fdaab22cd86ce764c202200974b8aca7bf51dbf54150d3884e1ae04f675637b926ec33bf75939446f6ca2801 3045022100ef253c1faa39e65115872519e5f0a33bbecf430c0f35cf562beabbad4da24d8d02201742be8ee49812a73adea3007c9641ce6725c32cd44ddb8e3a3af460015d140501',
+          hex: '0047304402207515cf147d201f411092e6be5a64a6006f9308fad7b2a8fdaab22cd86ce764c202200974b8aca7bf51dbf54150d3884e1ae04f675637b926ec33bf75939446f6ca2801483045022100ef253c1faa39e65115872519e5f0a33bbecf430c0f35cf562beabbad4da24d8d02201742be8ee49812a73adea3007c9641ce6725c32cd44ddb8e3a3af460015d140501'
+        },
         previousOutput: {
           hex: '76a914ee54bdd81113a2a8f02cd0dcdd1fa8b14c523fd988ac'
         }
@@ -230,6 +234,46 @@ describe('Test Issuance decoder', function () {
       bitcoinTransaction.ccdata[0].aggregationPolicy = 'dispersed'
       assetId = assetIdEncoder(bitcoinTransaction)
       assert.equal(assetId, 'UdFVstuJv4szzC54JViq3AYHyVr4cBEEEdCFyB')
+      console.log(assetId)
+      done()
+    })
+  })
+
+  describe('create assetID from address', function () {
+    var bitcoinTransaction = {
+      ccdata: [{
+        type: 'issuance',
+        aggregationPolicy: 'aggregatable',
+        divisibility: 3,
+        lockStatus: false
+      }],
+      vin: [{
+        txid: '0f45f38a8bcd8331877267e0f3f5f8a4b3c716165e40db4eee34d52759ad954f',
+        vout: 2,
+        address: 'mxNTyQ3WdFMQE7SGVpSQGXnSDevGMLq7dg'
+      }]
+    }
+    var assetId
+
+    it('should return correct unlocked aggregatable asset ID', function (done) {
+      assetId = assetIdEncoder(bitcoinTransaction)
+      assert.equal(assetId, 'Ua3Kt8WJtsx61VC8DUJiRmseQ45NfW2eJXbbE8')
+      console.log(assetId)
+      done()
+    })
+
+    it('should return correct unlocked hybrid asset ID', function (done) {
+      bitcoinTransaction.ccdata[0].aggregationPolicy = 'hybrid'
+      assetId = assetIdEncoder(bitcoinTransaction)
+      assert.equal(assetId, 'Uh4xEVFkgvvApJWrwucqGMjH1YkWmgGwizurnM')
+      console.log(assetId)
+      done()
+    })
+
+    it('should return correct unlocked dispersed asset ID', function (done) {
+      bitcoinTransaction.ccdata[0].aggregationPolicy = 'dispersed'
+      assetId = assetIdEncoder(bitcoinTransaction)
+      assert.equal(assetId, 'Ud9d5N9NVkLfNCCc3ExquxPQUbimDEV3ctXUKS')
       console.log(assetId)
       done()
     })
