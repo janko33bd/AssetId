@@ -123,7 +123,6 @@ module.exports = function (bitcoinTransaction) {
     var scriptSig = firstInput.scriptSig
     console.log('scriptSig.hex = ', scriptSig.hex)
     var buffer = new Buffer(scriptSig.hex, 'hex')
-    console.log('buffer = ', buffer)
     var type = bitcoin.script.classifyInput(buffer)
     if (type === 'pubkeyhash') {
       return createIdFromPubKeyHashInput(scriptSig, padding, divisibility)

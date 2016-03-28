@@ -254,4 +254,44 @@ describe('Test asset ID encoder', function () {
       done()
     })
   })
+
+  describe('create assetID from pay-to-scripthash address', function () {
+    var bitcoinTransaction = {
+      ccdata: [{
+        type: 'issuance',
+        aggregationPolicy: 'aggregatable',
+        divisibility: 3,
+        lockStatus: false
+      }],
+      vin: [{
+        txid: '0f45f38a8bcd8331877267e0f3f5f8a4b3c716165e40db4eee34d52759ad954f',
+        vout: 2,
+        address: '3P14159f73E4gFr7JterCCQh9QjiTjiZrG'
+      }]
+    }
+    var assetId
+
+    it('should return correct unlocked aggregatable asset ID', function (done) {
+      assetId = assetIdEncoder(bitcoinTransaction)
+      assert.equal(assetId, 'Ua7LQe4WHDZooow4exMVDqGhM47FWnBxbN8j35')
+      console.log(assetId)
+      done()
+    })
+
+    it('should return correct unlocked hybrid asset ID', function (done) {
+      bitcoinTransaction.ccdata[0].aggregationPolicy = 'hybrid'
+      assetId = assetIdEncoder(bitcoinTransaction)
+      assert.equal(assetId, 'Uh8xkzox5GXtcdFoPPfc4R8KxYnPcxSFzbdQr1')
+      console.log(assetId)
+      done()
+    })
+
+    it('should return correct unlocked dispersed asset ID', function (done) {
+      bitcoinTransaction.ccdata[0].aggregationPolicy = 'dispersed'
+      assetId = assetIdEncoder(bitcoinTransaction)
+      assert.equal(assetId, 'UdDdbshZt5xPAWwYUj1ci1nTRbke4WeMseyejd')
+      console.log(assetId)
+      done()
+    })
+  })
 })
