@@ -12,7 +12,11 @@ var LOCKEPADDING = {
   hybrid: 0x2102,
   dispersed: 0x20e4
 }
-var NETWORKVERSIONS = [0x00, 0x05, 0x6f, 0xc4]
+var BTC_P2PKH = 0x00
+var BTC_TESTNET_P2PKH = 0x6f
+var BTC_P2SH = 0x05
+var BTC_TESTNET_P2SH = 0xc4
+var NETWORKVERSIONS = [BTC_P2PKH, BTC_TESTNET_P2PKH, BTC_P2SH, BTC_TESTNET_P2SH]
 var POSTFIXBYTELENGTH = 2
 
 var padLeadingZeros = function (hex, byteSize) {
@@ -68,12 +72,22 @@ var createIdFromScriptHashInput = function (scriptSig, padding, divisibility) {
 var createIdFromAddress = function (address, padding, divisibility) {
   debug('createIdFromAddress')
   var addressBuffer = bs58check.decode(address)
-  var version = addressBuffer.slice(0, 1)
-  if (NETWORKVERSIONS.indexOf(parseInt(version.toString('hex'), 16)) === -1) throw new Error('Unrecognized address network')
-  var pubKeyHash = addressBuffer.slice(version.length, 21)
-  var pubKeyHashOutput = bitcoin.script.pubKeyHashOutput(pubKeyHash)
-  debug('pubKeyHashOutput = ', pubKeyHashOutput)
-  return hashAndBase58CheckEncode(pubKeyHashOutput, padding, divisibility)
+  var versionBuffer = addressBuffer.slice(0, 1)
+  var version = parseInt(versionBuffer.toString('hex'), 16)
+  debug('version = ', version)
+  if (NETWORKVERSIONS.indexOf(version) === -1) throw new Error('Unrecognized address network')
+  if (version === BTC_P2SH || version === BTC_TESTNET_P2SH) {
+    var scriptHash = addressBuffer.slice(versionBuffer.length, 21)
+    var scriptHashOutput = bitcoin.script.scriptHashOutput(scriptHash)
+    debug('scriptHashOutput = ', scriptHashOutput)
+    return hashAndBase58CheckEncode(scriptHashOutput, padding, divisibility)
+  }
+  if (version === BTC_P2PKH || version === BTC_TESTNET_P2PKH) {
+    var pubKeyHash = addressBuffer.slice(versionBuffer.length, 21)
+    var pubKeyHashOutput = bitcoin.script.pubKeyHashOutput(pubKeyHash)
+    debug('pubKeyHashOutput = ', pubKeyHashOutput)
+    return hashAndBase58CheckEncode(pubKeyHashOutput, padding, divisibility)
+  }
 }
 
 var hashAndBase58CheckEncode = function (payloadToHash, padding, divisibility) {
