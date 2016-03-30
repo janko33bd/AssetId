@@ -295,3 +295,44 @@ describe('Test asset ID encoder', function () {
     })
   })
 })
+
+describe('create assetID from scriptSig.asm', function () {
+  it('should return the right asset ID', function (done) {
+    var bitcoinTransaction = {
+      'vin': [
+        {
+          'scriptSig': {
+            'asm': '3045022100b5aaae72b05c0698ea22e2f4cb3f3a46e5a0a1c1a98772b1c7305476b9ae5e1f02200276a003694eab8d12bc5791624b60b1c68486e4b985f2a672751bb35295202b01 02b509613c7e5d9e47347635f872c3aa271d01ac4a9a6445839ce2c5820a0f48a8'
+          }
+        }
+      ],
+      'ccdata': [{
+        'payments': [
+          {
+            'input': 0,
+            'amount': 26,
+            'output': 0,
+            'range': false,
+            'precent': false
+          }
+        ],
+        'protocol': 17219,
+        'version': 2,
+        'type': 'issuance',
+        'lockStatus': false,
+        'aggregationPolicy': 'dispersed',
+        'divisibility': 2,
+        'amount': 26,
+        'multiSig': [],
+        'torrentHash': 'd36854c461e1ce4d90dd73857ae9fa5349f6ba4a',
+        'sha2': 'da9f9603314dcbc0225f39b9313b7d67a5059e00e0b179e01cf8f879eaaa7fa3'
+      }]
+    }
+    bitcoinTransaction.ccdata[0].aggregationPolicy = 'dispersed'
+    var assetId = assetIdEncoder(bitcoinTransaction)
+    assert.equal(assetId, 'UdDszTzN2NV4frsfVeXQKDiTZMbRvMqDfK6KF4')
+    console.log(assetId)
+    done()
+  })
+})
+

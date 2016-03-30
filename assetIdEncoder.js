@@ -41,12 +41,15 @@ var createIdFromPreviousOutputScriptPubKey = function (previousOutputHex, paddin
 
 var createIdFromPubKeyHashInput = function (scriptSig, padding, divisibility) {
   debug('createIdFromPubKeyHashInput')
+  if (!scriptSig.asm) {
+    scriptSig.asm = bitcoin.script.toASM(scriptSig.hex)
+  }
   var publicKey = scriptSig.asm.split(' ')[1]
   debug('publicKey = ', publicKey)
   publicKey = new Buffer(publicKey, 'hex')
-  debug('publicKey = ', publicKey)
   var hash256 = hash.sha256(publicKey)
   var pubKeyHash = hash.ripemd160(hash256)
+  debug('pubKeyHash = ', pubKeyHash)
   var pubKeyHashOutput = bitcoin.script.pubKeyHashOutput(pubKeyHash)
   debug('pubKeyHashOutput = ', pubKeyHashOutput)
   return hashAndBase58CheckEncode(pubKeyHashOutput, padding, divisibility)
@@ -91,8 +94,11 @@ var createIdFromAddress = function (address, padding, divisibility) {
 }
 
 var hashAndBase58CheckEncode = function (payloadToHash, padding, divisibility) {
+  debug('hashAndBase58CheckEncode')
+  debug('padding and divisibility = ' + padding.toString(16) + ', ' + divisibility)
   var hash256 = hash.sha256(payloadToHash)
   var hash160 = hash.ripemd160(hash256)
+  debug('hash160 = ', hash160)
   padding = new Buffer(padLeadingZeros(padding.toString(16)), 'hex')
   divisibility = new Buffer(padLeadingZeros(divisibility.toString(16), POSTFIXBYTELENGTH), 'hex')
   var concatenation = Buffer.concat([padding, hash160, divisibility])
@@ -119,10 +125,11 @@ module.exports = function (bitcoinTransaction) {
     return createIdFromPreviousOutputScriptPubKey(firstInput.previousOutput.hex, padding, divisibility)
   }
 
-  if (firstInput.scriptSig && firstInput.scriptSig.hex) {
+  if (firstInput.scriptSig && (firstInput.scriptSig.hex || firstInput.scriptSig.asm)) {
     var scriptSig = firstInput.scriptSig
-    console.log('scriptSig.hex = ', scriptSig.hex)
-    var buffer = new Buffer(scriptSig.hex, 'hex')
+    scriptSig.hex = scriptSig.hex || bitcoin.script.fromASM(scriptSig.asm)
+    debug('scriptSig.hex = ', scriptSig.hex)
+    var buffer = Buffer.isBuffer(scriptSig.hex) ? scriptSig.hex : new Buffer(scriptSig.hex, 'hex')
     var type = bitcoin.script.classifyInput(buffer)
     if (type === 'pubkeyhash') {
       return createIdFromPubKeyHashInput(scriptSig, padding, divisibility)
