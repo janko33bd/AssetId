@@ -42,7 +42,8 @@ var createIdFromPreviousOutputScriptPubKey = function (previousOutputHex, paddin
 var createIdFromPubKeyHashInput = function (scriptSig, padding, divisibility) {
   debug('createIdFromPubKeyHashInput')
   if (!scriptSig.asm) {
-    scriptSig.asm = bitcoin.script.toASM(scriptSig.hex)
+    var buffer = new Buffer(scriptSig.hex, 'hex')
+    scriptSig.asm = bitcoin.script.toASM(buffer)
   }
   var publicKey = scriptSig.asm.split(' ')[1]
   debug('publicKey = ', publicKey)
@@ -57,7 +58,7 @@ var createIdFromPubKeyHashInput = function (scriptSig, padding, divisibility) {
 
 var createIdFromScriptHashInput = function (scriptSig, padding, divisibility) {
   debug('createIdFromScriptHashInput')
-  var buffer = new Buffer(scriptSig.hex, 'hex')
+  var buffer = scriptSig.hex ? new Buffer(scriptSig.hex, 'hex') : bitcoin.script.fromASM(scriptSig.asm)
   debug('buffer = ', buffer)
   var chunks = bitcoin.script.decompile(buffer)
   var lastChunk = chunks[chunks.length - 1]
@@ -127,9 +128,9 @@ module.exports = function (bitcoinTransaction) {
 
   if (firstInput.scriptSig && (firstInput.scriptSig.hex || firstInput.scriptSig.asm)) {
     var scriptSig = firstInput.scriptSig
-    scriptSig.hex = scriptSig.hex || bitcoin.script.fromASM(scriptSig.asm)
+    scriptSig.hex = scriptSig.hex || bitcoin.script.fromASM(scriptSig.asm).toString('hex')
     debug('scriptSig.hex = ', scriptSig.hex)
-    var buffer = Buffer.isBuffer(scriptSig.hex) ? scriptSig.hex : new Buffer(scriptSig.hex, 'hex')
+    var buffer = new Buffer(scriptSig.hex, 'hex')
     var type = bitcoin.script.classifyInput(buffer)
     if (type === 'pubkeyhash') {
       return createIdFromPubKeyHashInput(scriptSig, padding, divisibility)
